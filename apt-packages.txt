@@ -1,0 +1,8 @@
+nmap
+whatweb
+gobuster
+enum4linux
+smbmap
+ftp
+sshpass
+netcat

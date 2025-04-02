@@ -1,0 +1,24 @@
+paths:
+  target_dir: ~/Pentest/02_targets
+
+tools:
+  nmap_scan: true
+  web_enum: true
+  smb_enum: true
+  ftp_enum: true
+  ssh_enum: true
+  ad_enum_base: true # A travailler
+  report_generation: true
+
+options:
+  skip_ping_check: false
+
+web_enum:
+  gobuster_threads: 50
+  timeout: 10
+  extensions: php,html
+
+ssh_enum:
+  enable_bruteforce: true
+  usernames: ["root", "admin", "user"]
+  password: ["toor", "root", ""]
