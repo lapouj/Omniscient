@@ -77,6 +77,14 @@ python3 ~/Omniscient/omniscient/module_launcher.py --module <NomModule> --target
 
 ---
 
+## 🔧 Installation
+
+```bash
+git clone https://github.com/lapouj/Omniscient.git
+cd Omniscient
+pip install -r requirements.txt
+```
+
 ## ⚡ Pré-requis
 
 - Python 3.8+
