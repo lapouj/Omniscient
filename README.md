@@ -14,6 +14,20 @@ Le projet est **en cours de développement** et amené à évoluer vers une solu
 
 L'objectif final est d'avoir un outil complet, éducatif et intelligent avec une intégration d'un LLM en Model Context Protocol afin d'orienter l'exploitation post-reconnaissance. C'est une façon pour moi de progresser et de développer mes connaissances sur différents aspects qui m'intéresses. 
 
+### 🧱 Organisation du projet Omniscient
+
+L’outil Omniscient a été pensé pour être modulaire, clair et évolutif, dans l’objectif de s’adapter à tous types d’environnements (CTF, lab d'entraînement, audits plus poussés) sans dépendre d’un fonctionnement figé.
+
+🔧 Chaque type de service (FTP, SMB, Web, SSH, etc.) est traité par un module indépendant, situé dans un répertoire modules/. Cette approche permet d’ajouter ou désactiver des modules facilement, selon les besoins du moment.
+
+🧠 La première étape est un scan Nmap intelligent, qui identifie les ports ouverts et les services actifs. Ces résultats sont ensuite parsés pour générer un fichier machine-state.json qui contient des "flags" activés (ex: has_http, has_smb, has_ad, etc.).
+
+💡 Ces flags déclenchent ensuite automatiquement les modules pertinents grâce à un système de chaining dynamique.
+
+📄 Chaque module produit un fichier de résultats .txt, alimente un JSON centralisé, et contribue à un rapport Markdown complet généré à la fin. Ce rapport regroupe tous les services détectés, les résultats d’analyse, et les premières pistes d’exploitation potentielles.
+
+🧩 L’architecture actuelle permet aussi d’envisager (et c'est le but final du projet) l’intégration d’un LLM via un Model Context Protocol : pour transmettre automatiquement les résultats des scans à un modèle d’IA afin de générer des suggestions de chemin d’exploitation pertinents et même d'automatiser l'exploitation.
+
 ---
 
 ## ⚙️ Fonctionnalités actuelles et à venir
