@@ -101,36 +101,21 @@ def run(target_name, platform, ip, target_base_path, config):
         except Exception as e:
             results["error"] = f"Erreur deep scan : {str(e)}"
 
-    # Check Active Directory
+    # 5. Check AD ports
     ad_ports = [88, 135, 139, 389, 445, 464, 3268, 9389]
     if any(p in results["open_tcp_ports"] for p in ad_ports):
         results["flags"]["has_ad"] = True
 
-    # 5. Sauvegarde JSON
+    # 6. Sauvegarde JSON
     with open(os.path.join(scan_dir, "nmap_results.json"), "w") as f:
         json.dump(results, f, indent=4)
 
-    # 6. Écriture machine-state.json
     with open(os.path.join(root_dir, "machine-state.json"), "w") as f:
         json.dump(results, f, indent=4)
 
-    # 7. Rapport Markdown
+    # 7. Rapport Markdown à retravailler
     md_path = os.path.join(root_dir, "recon_report.md")
-    with open(md_path, "w") as f:
-        f.write(f"# 🔎 Reconnaissance - {target_name}\n")
-        f.write(f"- IP : {ip}\n")
-        f.write(f"- Plateforme : {platform}\n")
-        f.write(f"- Date : {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n\n")
-        f.write("## 🧠 Résumé des ports ouverts\n")
-        f.write(f"**TCP :** {', '.join(map(str, results['open_tcp_ports']))}\n\n")
-        f.write(f"**UDP :** {', '.join(map(str, results['open_udp_ports']))}\n\n")
-        f.write("## ⚙️ Services détectés\n")
-        for svc in results["services"]:
-            f.write(f"- {svc['port']}/tcp → {svc['service']}\n")
-        f.write("\n## 🚩 Indicateurs activés\n")
-        for k, v in results["flags"].items():
-            if v:
-                f.write(f"- {k}\n")
+    generate_markdown_report(results, md_path, target_name, platform, ip)
 
     print("[✓] Analyse terminée. Résultats stockés.")
 
@@ -144,3 +129,69 @@ def run(target_name, platform, ip, target_base_path, config):
     print(f" - 🧠 machine-state.json   : {os.path.join(root_dir, 'machine-state.json')}")
 
     return results
+
+
+def generate_markdown_report(results, output_path, target_name, platform, ip):
+    SERVICE_DESCRIPTIONS = {
+        "http": "Serveur Web (HTTP)",
+        "https": "Serveur Web sécurisé (HTTPS)",
+        "ftp": "Serveur FTP (fichiers)",
+        "ssh": "Connexion distante SSH",
+        "domain": "Service DNS",
+        "netbios-ssn": "Partage réseau (NetBIOS)",
+        "microsoft-ds": "Partage de fichiers Windows (SMB)",
+        "kerberos-sec": "Kerberos (AD)",
+        "ldap": "Service LDAP (annuaire)",
+        "rpc": "Remote Procedure Call",
+        "kpasswd5": "Changement de mot de passe Kerberos",
+        "globalcatLDAP": "Catalogue global LDAP (AD)",
+        "adws": "Active Directory Web Services",
+    }
+
+    with open(output_path, "w") as f:
+        f.write(f"# 🔎 Rapport de reconnaissance - {target_name}\n")
+        f.write(f"- **IP** : {ip}\n")
+        f.write(f"- **Plateforme** : {platform}\n")
+        f.write(f"- **Date** : {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n\n")
+
+        f.write("## 🧠 Ports ouverts\n")
+        f.write("### TCP\n")
+        for port in results["open_tcp_ports"]:
+            f.write(f"- {port}/tcp\n")
+        f.write("\n### UDP\n")
+        for port in results["open_udp_ports"]:
+            f.write(f"- {port}/udp\n")
+        f.write("\n")
+
+        f.write("## ⚙️ Services détectés\n")
+        for svc in results["services"]:
+            desc = SERVICE_DESCRIPTIONS.get(svc["service"], "Service inconnu ou générique")
+            f.write(f"- **{svc['port']}/tcp ({svc['service']})** → {desc}\n")
+        f.write("\n")
+
+        f.write("## 🚩 Indicateurs activés\n")
+        for k, v in results["flags"].items():
+            if v:
+                f.write(f"- ✅ `{k}` activé\n")
+        f.write("\n")
+
+        f.write("## ✅ Modules suggérés\n")
+        if results["flags"].get("has_http") or results["flags"].get("has_https"):
+            f.write("- [x] `web_enum`\n")
+        if results["flags"].get("has_smb"):
+            f.write("- [x] `smb_enum`\n")
+        if results["flags"].get("has_ftp"):
+            f.write("- [x] `ftp_enum`\n")
+        if results["flags"].get("has_ssh"):
+            f.write("- [x] `ssh_enum`\n")
+        if results["flags"].get("has_ad"):
+            f.write("- [x] `ad_enum_base`\n")
+        f.write("- [x] `report_generation`\n")
+
+        f.write("\n## 📁 Fichiers générés\n")
+        f.write("- `quick_tcp.txt`, `udp.txt`, `deep_scan.txt`\n")
+        f.write("- `nmap_results.json`, `machine-state.json`\n")
+        f.write("- `recon_report.md` (ce fichier)\n")
+
+        f.write("\n---\n_Généré automatiquement par **Omniscient**_\n")
+
